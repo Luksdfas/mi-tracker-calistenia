@@ -40,12 +40,14 @@ const loadData = async () => {
     }
 
     try {
-      // Buscar datos en la nube
+      // Buscar datos en la nube (¡EL CAMBIO ESTÁ AQUÍ: maybeSingle!)
       const { data, error } = await supabase
         .from('user_data')
         .select('*')
         .eq('user_id', session.user.id)
-        .single();
+        .maybeSingle(); 
+
+      if (error) throw error;
 
       if (data) {
         setMesocycles(data.mesocycles || []);
@@ -56,7 +58,7 @@ const loadData = async () => {
           setExerciseDatabase(data.exercises);
         }
       } else {
-        // Si es usuario nuevo, crea su registro en la base de datos
+        // Si es usuario nuevo, crea su registro en la base de datos sin fallar
         await supabase.from('user_data').insert([
           { user_id: session.user.id, mesocycles: [], exercises: EXERCISE_DATABASE }
         ]);
