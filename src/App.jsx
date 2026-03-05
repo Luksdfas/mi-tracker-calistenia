@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
-import { Auth } from './components/Auth';
+import { Auth } from './components/auth';
 import CalisteniaTrackerPro from './components/CalisteniaTracker';
 
 function App() {
