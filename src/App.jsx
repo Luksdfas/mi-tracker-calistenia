@@ -55,7 +55,7 @@ function App() {
             Cerrar sesión
           </button>
           
-          <CalisteniaTrackerPro />
+          <CalisteniaTrackerPro session={session} />
         </>
       )}
     </div>

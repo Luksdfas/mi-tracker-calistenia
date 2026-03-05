@@ -8,6 +8,7 @@ import {
 
 import { EXERCISE_DATABASE } from '../data/exerciseDatabase';
 import { generateAllWeeks } from '../data/templates';
+import { supabase } from '../lib/supabase';
 
 // ============================================================================
 // COMPONENTE PRINCIPAL
@@ -30,42 +31,64 @@ const CalisteniaTrackerPro = () => {
     loadData();
   }, []);
 
-  const loadData = () => {
-    try {
+const loadData = async () => {
+    // Si no hay sesión (modo local), usa localStorage
+    if (!session?.user?.id) {
       const savedMesocycles = localStorage.getItem('calistenia_mesocycles');
-      const savedExercises = localStorage.getItem('calistenia_exercises');
-      
-      if (savedMesocycles) {
-        const parsed = JSON.parse(savedMesocycles);
-        setMesocycles(parsed);
-        if (parsed.length > 0) {
-          setCurrentMesocycleId(parsed[0].id);
+      if (savedMesocycles) setMesocycles(JSON.parse(savedMesocycles));
+      return;
+    }
+
+    try {
+      // Buscar datos en la nube
+      const { data, error } = await supabase
+        .from('user_data')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (data) {
+        setMesocycles(data.mesocycles || []);
+        if (data.mesocycles?.length > 0) setCurrentMesocycleId(data.mesocycles[0].id);
+        
+        // Cargar ejercicios personalizados si los hay
+        if (Object.keys(data.exercises || {}).length > 0) {
+          setExerciseDatabase(data.exercises);
         }
-      }
-      
-      if (savedExercises) {
-        setExerciseDatabase(JSON.parse(savedExercises));
+      } else {
+        // Si es usuario nuevo, crea su registro en la base de datos
+        await supabase.from('user_data').insert([
+          { user_id: session.user.id, mesocycles: [], exercises: EXERCISE_DATABASE }
+        ]);
       }
     } catch (error) {
-      console.error('Error al cargar los datos. Iniciando desde cero:', error);
+      console.error('Error cargando de Supabase:', error);
     }
   };
 
-  const saveMesocycles = (data) => {
-    try {
+const saveMesocycles = async (data) => {
+    setMesocycles(data); // Actualiza la pantalla rápido
+    
+    if (session?.user?.id) {
+      // Guarda en la nube
+      await supabase
+        .from('user_data')
+        .update({ mesocycles: data })
+        .eq('user_id', session.user.id);
+    } else {
+      // Guarda en local si no hay internet o sesión
       localStorage.setItem('calistenia_mesocycles', JSON.stringify(data));
-      setMesocycles(data);
-    } catch (error) {
-      console.error('Error al guardar mesociclos:', error);
     }
   };
 
-  const saveExerciseDatabase = (data) => {
-    try {
-      localStorage.setItem('calistenia_exercises', JSON.stringify(data));
-      setExerciseDatabase(data);
-    } catch (error) {
-      console.error('Error al guardar ejercicios:', error);
+const saveExerciseDatabase = async (data) => {
+    setExerciseDatabase(data);
+    
+    if (session?.user?.id) {
+      await supabase
+        .from('user_data')
+        .update({ exercises: data })
+        .eq('user_id', session.user.id);
     }
   };
 
