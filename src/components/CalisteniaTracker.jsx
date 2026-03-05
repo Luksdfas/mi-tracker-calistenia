@@ -9,18 +9,6 @@ import {
 import { EXERCISE_DATABASE } from '../data/exerciseDatabase';
 import { generateAllWeeks } from '../data/templates';
 
-// Parche para que funcione en el navegador
-window.storage = {
-  get: async (key) => {
-    const val = localStorage.getItem(key);
-    return val ? { value: val } : null;
-  },
-  set: async (key, value) => {
-    localStorage.setItem(key, value);
-  }
-};
-
-
 // ============================================================================
 // COMPONENTE PRINCIPAL
 // ============================================================================
@@ -37,17 +25,18 @@ const CalisteniaTrackerPro = () => {
   const [sessionType, setSessionType] = useState('pm');
   const [editingExercise, setEditingExercise] = useState(null);
 
+  // Cargar datos al iniciar la app
   useEffect(() => {
     loadData();
   }, []);
 
-  const loadData = async () => {
+  const loadData = () => {
     try {
-      const savedMesocycles = await window.storage.get('mesocycles');
-      const savedExercises = await window.storage.get('exercise-database');
+      const savedMesocycles = localStorage.getItem('calistenia_mesocycles');
+      const savedExercises = localStorage.getItem('calistenia_exercises');
       
       if (savedMesocycles) {
-        const parsed = JSON.parse(savedMesocycles.value);
+        const parsed = JSON.parse(savedMesocycles);
         setMesocycles(parsed);
         if (parsed.length > 0) {
           setCurrentMesocycleId(parsed[0].id);
@@ -55,28 +44,28 @@ const CalisteniaTrackerPro = () => {
       }
       
       if (savedExercises) {
-        setExerciseDatabase(JSON.parse(savedExercises.value));
+        setExerciseDatabase(JSON.parse(savedExercises));
       }
     } catch (error) {
-      console.log('Starting fresh');
+      console.error('Error al cargar los datos. Iniciando desde cero:', error);
     }
   };
 
-  const saveMesocycles = async (data) => {
+  const saveMesocycles = (data) => {
     try {
-      await window.storage.set('mesocycles', JSON.stringify(data));
+      localStorage.setItem('calistenia_mesocycles', JSON.stringify(data));
       setMesocycles(data);
     } catch (error) {
-      console.error('Error saving:', error);
+      console.error('Error al guardar mesociclos:', error);
     }
   };
 
-  const saveExerciseDatabase = async (data) => {
+  const saveExerciseDatabase = (data) => {
     try {
-      await window.storage.set('exercise-database', JSON.stringify(data));
+      localStorage.setItem('calistenia_exercises', JSON.stringify(data));
       setExerciseDatabase(data);
     } catch (error) {
-      console.error('Error saving exercises:', error);
+      console.error('Error al guardar ejercicios:', error);
     }
   };
 
@@ -117,7 +106,7 @@ const CalisteniaTrackerPro = () => {
   };
 
   const deleteMesocycle = (mesocycleId) => {
-    if (!confirm('¿Eliminar este mesociclo?')) return;
+    if (!window.confirm('¿Eliminar este mesociclo?')) return;
     
     const updated = mesocycles.filter(m => m.id !== mesocycleId);
     saveMesocycles(updated);
@@ -134,7 +123,6 @@ const CalisteniaTrackerPro = () => {
     return mesocycles.find(m => m.id === currentMesocycleId);
   };
 
-  // Marcar día como completado
   const toggleDayCompleted = (weekNum, dayName) => {
     const meso = getCurrentMesocycle();
     if (!meso) return;
@@ -186,7 +174,6 @@ const CalisteniaTrackerPro = () => {
     saveMesocycles(updated);
   };
 
-  // Actualizar ejercicio completo
   const updateDayExercise = (weekNum, dayName, exerciseIndex, updates) => {
     const meso = getCurrentMesocycle();
     if (!meso) return;
@@ -197,7 +184,6 @@ const CalisteniaTrackerPro = () => {
     
     const day = week.days[dayName];
     
-    // Manejar sesiones (AM/PM)
     if (day.sessions) {
       const session = sessionType === 'am' ? day.sessions.am : day.sessions.pm;
       if (!session?.exercises?.[exerciseIndex]) return;
@@ -213,7 +199,6 @@ const CalisteniaTrackerPro = () => {
     saveMesocycles(updated);
   };
 
-  // Añadir ejercicio
   const addExerciseToDay = (weekNum, dayName, exerciseId) => {
     const meso = getCurrentMesocycle();
     if (!meso) return;
@@ -235,7 +220,6 @@ const CalisteniaTrackerPro = () => {
     
     const day = week.days[dayName];
     
-    // Manejar sesiones
     if (day.sessions) {
       const session = sessionType === 'am' ? day.sessions.am : day.sessions.pm;
       if (!session.exercises) session.exercises = [];
@@ -251,7 +235,6 @@ const CalisteniaTrackerPro = () => {
     saveMesocycles(updated);
   };
 
-  // Eliminar ejercicio
   const removeExerciseFromDay = (weekNum, dayName, exerciseIndex) => {
     const meso = getCurrentMesocycle();
     if (!meso) return;
@@ -577,7 +560,6 @@ const CalisteniaTrackerPro = () => {
     
     const isDayComplete = isDayCompleted(currentWeek, currentDay);
     
-    // Obtener ejercicios según si tiene sesiones o no
     const getExercises = () => {
       if (dayData.sessions) {
         const session = sessionType === 'am' ? dayData.sessions.am : dayData.sessions.pm;
@@ -692,7 +674,7 @@ const CalisteniaTrackerPro = () => {
                 </button>
                 <button
                   onClick={() => {
-                    if (confirm('¿Eliminar ejercicio?')) {
+                    if (window.confirm('¿Eliminar ejercicio?')) {
                       removeExerciseFromDay(currentWeek, currentDay, index);
                     }
                   }}
