@@ -14,7 +14,7 @@ import { supabase } from '../lib/supabase';
 // COMPONENTE PRINCIPAL
 // ============================================================================
 
-const CalisteniaTrackerPro = () => {
+const CalisteniaTrackerPro = ({ session }) => {
   const [mesocycles, setMesocycles] = useState([]);
   const [currentMesocycleId, setCurrentMesocycleId] = useState(null);
   const [currentWeek, setCurrentWeek] = useState(0);
@@ -29,7 +29,7 @@ const CalisteniaTrackerPro = () => {
   // Cargar datos al iniciar la app
   useEffect(() => {
     loadData();
-  }, []);
+  }, [session]);
 
 const loadData = async () => {
     // Si no hay sesión (modo local), usa localStorage
