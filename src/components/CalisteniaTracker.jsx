@@ -14,7 +14,7 @@ import { supabase } from '../lib/supabase';
 // COMPONENTE PRINCIPAL
 // ============================================================================
 
-const CalisteniaTrackerPro = () => {
+const CalisteniaTrackerPro = ({ session }) => {
   const [mesocycles, setMesocycles] = useState([]);
   const [currentMesocycleId, setCurrentMesocycleId] = useState(null);
   const [currentWeek, setCurrentWeek] = useState(0);
@@ -35,7 +35,15 @@ const loadData = async () => {
     // Si no hay sesión (modo local), usa localStorage
     if (!session?.user?.id) {
       const savedMesocycles = localStorage.getItem('calistenia_mesocycles');
-      if (savedMesocycles) setMesocycles(JSON.parse(savedMesocycles));
+      if (savedMesocycles) {
+        try {
+          setMesocycles(JSON.parse(savedMesocycles));
+        } catch (e) {
+          console.error('Error parsing local mesocycles:', e);
+          // Opcionalmente podrías limpiar el localStorage si está corrupto
+          // localStorage.removeItem('calistenia_mesocycles');
+        }
+      }
       return;
     }
 
