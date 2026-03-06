@@ -14,7 +14,7 @@ import { supabase } from '../lib/supabase';
 // COMPONENTE PRINCIPAL
 // ============================================================================
 
-const CalisteniaTrackerPro = () => {
+const CalisteniaTrackerPro = ({ session }) => {
   const [mesocycles, setMesocycles] = useState([]);
   const [currentMesocycleId, setCurrentMesocycleId] = useState(null);
   const [currentWeek, setCurrentWeek] = useState(0);
