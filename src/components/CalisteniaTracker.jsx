@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Calendar, TrendingUp, Dumbbell, Target, Award, ChevronRight, ChevronLeft, 
   Check, X, Plus, Minus, Clock, Flame, Activity, BarChart3, Edit2, Save, 
@@ -25,6 +25,10 @@ const CalisteniaTrackerPro = () => {
   const [showWarmup, setShowWarmup] = useState(false);
   const [sessionType, setSessionType] = useState('pm');
   const [editingExercise, setEditingExercise] = useState(null);
+
+  const currentMesocycle = useMemo(() => {
+    return mesocycles.find(m => m.id === currentMesocycleId);
+  }, [mesocycles, currentMesocycleId]);
 
   // Cargar datos al iniciar la app
   useEffect(() => {
@@ -144,12 +148,8 @@ const saveExerciseDatabase = async (data) => {
     }
   };
 
-  const getCurrentMesocycle = () => {
-    return mesocycles.find(m => m.id === currentMesocycleId);
-  };
-
   const toggleDayCompleted = (weekNum, dayName) => {
-    const meso = getCurrentMesocycle();
+    const meso = currentMesocycle;
     if (!meso) return;
     
     const key = `w${weekNum}-${dayName}`;
@@ -173,7 +173,7 @@ const saveExerciseDatabase = async (data) => {
   };
 
   const updateWorkoutData = (exerciseId, setIndex, field, value) => {
-    const meso = getCurrentMesocycle();
+    const meso = currentMesocycle;
     if (!meso) return;
     
     const key = `w${currentWeek}-${currentDay}-${exerciseId}`;
@@ -200,7 +200,7 @@ const saveExerciseDatabase = async (data) => {
   };
 
   const updateDayExercise = (weekNum, dayName, exerciseIndex, updates) => {
-    const meso = getCurrentMesocycle();
+    const meso = currentMesocycle;
     if (!meso) return;
     
     const newWeeks = { ...meso.weeks };
@@ -225,7 +225,7 @@ const saveExerciseDatabase = async (data) => {
   };
 
   const addExerciseToDay = (weekNum, dayName, exerciseId) => {
-    const meso = getCurrentMesocycle();
+    const meso = currentMesocycle;
     if (!meso) return;
     
     const exercise = exerciseDatabase[exerciseId];
@@ -261,7 +261,7 @@ const saveExerciseDatabase = async (data) => {
   };
 
   const removeExerciseFromDay = (weekNum, dayName, exerciseIndex) => {
-    const meso = getCurrentMesocycle();
+    const meso = currentMesocycle;
     if (!meso) return;
     
     const newWeeks = { ...meso.weeks };
@@ -290,7 +290,7 @@ const saveExerciseDatabase = async (data) => {
   };
 
   const getWorkoutData = (exerciseId) => {
-    const meso = getCurrentMesocycle();
+    const meso = currentMesocycle;
     if (!meso) return { sets: [] };
     
     const key = `w${currentWeek}-${currentDay}-${exerciseId}`;
@@ -298,7 +298,7 @@ const saveExerciseDatabase = async (data) => {
   };
 
   const isDayCompleted = (weekNum, dayName) => {
-    const meso = getCurrentMesocycle();
+    const meso = currentMesocycle;
     if (!meso) return false;
     
     const key = `w${weekNum}-${dayName}`;
@@ -436,7 +436,7 @@ const saveExerciseDatabase = async (data) => {
   };
 
   const renderCalendarView = () => {
-    const meso = getCurrentMesocycle();
+    const meso = currentMesocycle;
     if (!meso) return <div>No hay mesociclo seleccionado</div>;
     
     const week = meso.weeks[currentWeek];
@@ -569,7 +569,7 @@ const saveExerciseDatabase = async (data) => {
   };
 
   const renderWorkoutView = () => {
-    const meso = getCurrentMesocycle();
+    const meso = currentMesocycle;
     if (!meso) return <div>No hay mesociclo</div>;
     
     const week = meso.weeks[currentWeek];
@@ -973,7 +973,7 @@ const saveExerciseDatabase = async (data) => {
   };
 
   const renderProgressView = () => {
-    const meso = getCurrentMesocycle();
+    const meso = currentMesocycle;
     if (!meso) return <div>No hay mesociclo</div>;
     
     const weightedPullupData = [];
